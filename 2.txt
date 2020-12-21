@@ -1,0 +1,10 @@
+5
+C 1 2 treasure 2 Chalice of Fire
+Z 5 3 clue 5 1
+W 5 1 clue 1 2
+V 2 3 clue 5 3
+P 1 1 treasure 1 Philosopher’s Stone
+3
+Alice nice 2 0 0 1 2
+Bob nice 1 0 0 1 2
+Carol nice 1 0 0 1 2

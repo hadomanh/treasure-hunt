@@ -1,0 +1,8 @@
+3
+C 5 3 treasure 2 Chalice of Fire
+L 4 3 treasure 1 Philosopher’s Stone
+V 2 3 clue 5 3
+3
+Lyly nice 1 0 1 2 3
+Bob nice 1 4 3 4 3
+Alice nice 2 0 0 2 3

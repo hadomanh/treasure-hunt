@@ -1,0 +1,6 @@
+3
+Z 5 3 clue 5 1
+W 5 1 clue 1 2
+V 2 3 clue 5 3
+1
+Alice nice 2 0 0 2 3
