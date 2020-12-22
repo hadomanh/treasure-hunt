@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lombok.Data;
+import ngakinz.enums.MessageHeader;
+import ngakinz.model.Response;
 
 @Data
 public class GameHandler implements Runnable {
@@ -24,7 +26,14 @@ public class GameHandler implements Runnable {
 			
 			for (Entry<ClientHandler, Thread> p : players.entrySet()) {
 				try {
-					p.getKey().getOut().writeUTF(message);
+					// Return result
+					Response response = new Response(200, MessageHeader.RESULT, message);
+					p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(response));
+					
+					// re-collect
+					response = new Response(200, MessageHeader.COLLECTING, "");
+					p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(response));
+					
 				} catch (IOException e) {
 					System.out.println("..." + e.toString());
 				}

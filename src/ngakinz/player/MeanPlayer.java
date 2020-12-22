@@ -1,5 +1,8 @@
 package ngakinz.player;
 
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
 public class MeanPlayer extends Player {
 
 	public MeanPlayer(String name, int speed, int x, int y, int xDest, int yDest) {

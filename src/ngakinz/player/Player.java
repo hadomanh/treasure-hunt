@@ -3,10 +3,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import ngakinz.artifact.Artifact;
 import ngakinz.artifact.Treasure;
 
 @Data
+@NoArgsConstructor
 public abstract class Player {
 
 	private String name;
@@ -50,10 +52,17 @@ public abstract class Player {
 
 	}
 	
-	public void move(int toX, int toY) {
+	public boolean isPossible(int toX, int toY) {
+		
 		double distance = Math.sqrt(Math.pow(toX - x, 2) + Math.pow(toY - y, 2));
 		
-		if (distance <= speed) {
+		return distance <= speed;
+		
+	}
+	
+	public void move(int toX, int toY) {
+		
+		if (isPossible(toX, toY)) {
 			this.x = toX;
 			this.y = toY;
 		}
@@ -90,9 +99,11 @@ public abstract class Player {
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append(name + " (" + x + "," + y + ") (" + xDest + "," + yDest + ") ");
-
-		for (Artifact a : collection) {
-			sb.append(a.getId() + " ");
+		
+		if (collection != null) {
+			for (Artifact a : collection) {
+				sb.append(a.getId() + " ");
+			}
 		}
 		
 		return sb.toString();
@@ -109,8 +120,6 @@ public abstract class Player {
 		}
 		return count;
 	}
-	
-	
 
 }
 

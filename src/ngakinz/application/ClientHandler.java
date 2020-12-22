@@ -36,13 +36,24 @@ public class ClientHandler implements Runnable {
 			out.writeUTF(ApplicationProvider.gson.toJson(response));
 			
 			System.out.println("Client accepted: " + socket.getPort());
+			
+			Request request;
 
 			// reads message from client until "Over" is sent
-			while (!message.equalsIgnoreCase("Over")) {
-				Request request = ApplicationProvider.gson.fromJson(in.readUTF(), Request.class);
+			do {
+				request = ApplicationProvider.gson.fromJson(in.readUTF(), Request.class);
 				message = request.getMessage();
+				
 				System.out.println("From port " + socket.getPort() + ": " + message);
-			}
+				
+				if (request.getHeader() == MessageHeader.EXIT) {
+					break;
+				}
+				
+				response = new Response(200, MessageHeader.WAITING, "Waiting other players...");
+				out.writeUTF(ApplicationProvider.gson.toJson(response));
+				
+			} while(true);
 
 			System.out.println("Disconnected: " + socket.getPort());
 			socket.close();

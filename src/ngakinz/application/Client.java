@@ -1,12 +1,14 @@
 package ngakinz.application;
 
-//A Java program for a Client 
 import java.net.*;
 import java.util.Scanner;
 
 import ngakinz.enums.MessageHeader;
 import ngakinz.model.Request;
 import ngakinz.model.Response;
+import ngakinz.player.MeanPlayer;
+import ngakinz.player.NicePlayer;
+import ngakinz.player.Player;
 
 import java.io.*;
 
@@ -16,6 +18,7 @@ public class Client {
 	private DataOutputStream out = null;
 	private DataInputStream in = null;
 	private Scanner scanner = null;
+	private Player player;
 
 	// Constructor to put ip address and port
 	public Client(String address, int port) {
@@ -31,44 +34,73 @@ public class Client {
 			// Try to connect server
 			Response response = ApplicationProvider.gson.fromJson(in.readUTF(), Response.class);
 			System.out.println(response.getMessage());
-			
+
 			// Access denied
 			if (response.getHeader() == MessageHeader.DENY) {
 				return;
 			}
 
-			// Waiting at lobby
-			System.out.println("Waiting other players...");
-
-			// game start
-			response = ApplicationProvider.gson.fromJson(in.readUTF(), Response.class);
-			System.out.println(response.getMessage());
-
 			// string to read message from input
 			scanner = new Scanner(System.in).useDelimiter("\n");
 			String line = "";
+			int option = 1;
 
-			// keep reading until "Over" is input
+			// keep reading
 			do {
+				response = ApplicationProvider.gson.fromJson(in.readUTF(), Response.class);
+				System.out.println(response.getMessage());
 
-				System.out.print("Message: ");
-				line = scanner.next();
-				line = line.trim();
+				switch (response.getHeader()) {
 
-				while (!line.matches("^\\d+\\s\\d+$")) {
-					System.out.println("Usage: <x> <space> <y>");
-					System.out.print("Message: ");
-					line = scanner.next();
-					line = line.trim();
+				case NICE_PLAYER:
+					player = ApplicationProvider.gson.fromJson(response.getMessage(), NicePlayer.class);
+					System.out.println(player);
+					break;
+
+				case MEAN_PLAYER:
+					player = ApplicationProvider.gson.fromJson(response.getMessage(), MeanPlayer.class);
+					System.out.println(player);
+					break;
+
+				case START:
+				case COLLECTING:
+					do {
+						System.out.println("[1]. Move");
+						System.out.println("[0]. Exit");
+						System.out.print("Option: ");
+						option = scanner.nextInt();
+					} while (option < 0 || option > 1);
+
+					Request request;
+
+					if (option == 0) {
+						request = new Request(MessageHeader.EXIT, "Boring game...");
+						out.writeUTF(ApplicationProvider.gson.toJson(request));
+						break;
+					}
+
+					System.out.print("Location: ");
+					line = scanner.next().trim();
+
+					while (!line.matches("^\\d+\\s\\d+$")) {
+						System.out.println("Usage: <x> <space> <y>");
+						System.out.print("Location: ");
+						line = scanner.next().trim();
+					}
+
+					request = new Request(MessageHeader.MOVE, line);
+					out.writeUTF(ApplicationProvider.gson.toJson(request));
+					break;
+
+				case WAITING:
+				case RESULT:
+					break;
+
+				default:
+					throw new IllegalArgumentException("Unexpected value: " + response.getHeader());
 				}
 
-				Request request = new Request(MessageHeader.MOVE, line);
-				out.writeUTF(ApplicationProvider.gson.toJson(request));
-
-				System.out.println("Waiting response...");
-				System.out.println(in.readUTF());
-
-			} while (!line.equalsIgnoreCase("over"));
+			} while (option != 0);
 
 			// close the connection
 			in.close();

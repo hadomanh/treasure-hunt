@@ -3,9 +3,11 @@ package ngakinz.enums;
 public enum MessageHeader {
 	
 	// Server
-	START, ACCEPT, DENY,
+	START, ACCEPT, DENY, WAITING, COLLECTING, RESULT, 
+	
+	NICE_PLAYER, MEAN_PLAYER, 
 	
 	// Client
-	MOVE
+	MOVE, REPLAY, EXIT
 
 }

@@ -12,7 +12,11 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import ngakinz.enums.MessageHeader;
+import ngakinz.generator.FromFileGenerator;
+import ngakinz.generator.GameGenerator;
 import ngakinz.model.Response;
+import ngakinz.player.NicePlayer;
+import ngakinz.player.Player;
 
 public class Server {
 	
@@ -31,6 +35,8 @@ public class Server {
 		System.out.println("Waiting for a client ...");
 
 		server = new ServerSocket(port);
+		
+		GameGenerator generator = new FromFileGenerator("4.txt");
 
 		while (true) {
 			socket = server.accept();
@@ -46,9 +52,22 @@ public class Server {
 				Response response = new Response(200, MessageHeader.ACCEPT, "Connected");
 				out.writeUTF(ApplicationProvider.gson.toJson(response));
 				
+				Player p = generator.getPlayer();
+				
+				if (p.getClass() == NicePlayer.class) {
+					response = new Response(200, MessageHeader.NICE_PLAYER, ApplicationProvider.gson.toJson(p));
+				} else {
+					response = new Response(200, MessageHeader.MEAN_PLAYER, ApplicationProvider.gson.toJson(p));
+				}
+				
+				out.writeUTF(ApplicationProvider.gson.toJson(response));
+				
 				if (getPlayerAmount() == ApplicationProvider.CAPACITY) {
 					startGame();
-				} 
+				} else {
+					response = new Response(200, MessageHeader.WAITING, "Waiting other players...");
+					out.writeUTF(ApplicationProvider.gson.toJson(response));
+				}
 				
 			} else {
 				Response response = new Response(403, MessageHeader.DENY, "Access denied");

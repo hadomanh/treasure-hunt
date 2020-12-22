@@ -1,8 +1,10 @@
 package ngakinz.player;
 
+import lombok.NoArgsConstructor;
 import ngakinz.artifact.Artifact;
 import ngakinz.artifact.Clue;
 
+@NoArgsConstructor
 public class NicePlayer extends Player {
 
 	public NicePlayer(String name, int speed, int x, int y, int xDest, int yDest) {
