@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ngakinz.artifact.Artifact;
+import ngakinz.artifact.Clue;
 import ngakinz.artifact.Treasure;
 
 @Data
@@ -98,11 +99,28 @@ public abstract class Player {
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
-		sb.append(name + " (" + x + "," + y + ") (" + xDest + "," + yDest + ") ");
+		sb.append("Character: " + name + "\n");
+		sb.append("Type: " + this.getClass().getSimpleName() + "\n");
+		sb.append("Speed: " + speed + "\n");
+		sb.append("Location: (" + x + "," + y + ")\n");
+
+		sb.append("Hint: (" + xDest + "," + yDest + ")");
 		
 		if (collection != null) {
 			for (Artifact a : collection) {
-				sb.append(a.getId() + " ");
+				if (a.getClass() == Clue.class) {
+					sb.append(" (" + a.getX() + "," + a.getY() + ")");
+				}
+				
+			}
+			sb.append("\n");
+			sb.append("Treasure:");
+			
+			for (Artifact a : collection) {
+				if (a.getClass() == Treasure.class) {
+					sb.append("\n\t" + ((Treasure)a).getDesc());
+				}
+				
 			}
 		}
 		
@@ -118,6 +136,7 @@ public abstract class Player {
 				count++;
 			}
 		}
+		
 		return count;
 	}
 

@@ -12,8 +12,6 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import ngakinz.enums.MessageHeader;
-import ngakinz.generator.FromFileGenerator;
-import ngakinz.generator.GameGenerator;
 import ngakinz.model.Response;
 import ngakinz.player.NicePlayer;
 import ngakinz.player.Player;
@@ -35,8 +33,6 @@ public class Server {
 		System.out.println("Waiting for a client ...");
 
 		server = new ServerSocket(port);
-		
-		GameGenerator generator = new FromFileGenerator("4.txt");
 
 		while (true) {
 			socket = server.accept();
@@ -48,11 +44,11 @@ public class Server {
 			out = new DataOutputStream(socket.getOutputStream());
 			
 			if (getPlayerAmount() < ApplicationProvider.CAPACITY) {
-				addPlayer(socket, in, out);
 				Response response = new Response(200, MessageHeader.ACCEPT, "Connected");
 				out.writeUTF(ApplicationProvider.gson.toJson(response));
 				
-				Player p = generator.getPlayer();
+				Player p = ApplicationProvider.generator.getPlayer();
+				addPlayer(socket, in, out, p);
 				
 				if (p.getClass() == NicePlayer.class) {
 					response = new Response(200, MessageHeader.NICE_PLAYER, ApplicationProvider.gson.toJson(p));
@@ -65,7 +61,7 @@ public class Server {
 				if (getPlayerAmount() == ApplicationProvider.CAPACITY) {
 					startGame();
 				} else {
-					response = new Response(200, MessageHeader.WAITING, "Waiting other players...");
+					response = new Response(200, MessageHeader.WAITING, "** Waiting other players...");
 					out.writeUTF(ApplicationProvider.gson.toJson(response));
 				}
 				
@@ -85,7 +81,7 @@ public class Server {
 			}
 		}
 
-		new Thread(new GameHandler(players)).start();
+		new Thread(new GameHandler(players, ApplicationProvider.generator.getArtifacts())).start();
 	}
 	
 	private int getPlayerAmount() {
@@ -97,8 +93,8 @@ public class Server {
 		return players.size();
 	}
 	
-	private void addPlayer(Socket socket, DataInputStream in, DataOutputStream out) {
-		ClientHandler c = new ClientHandler(socket, in, out);
+	private void addPlayer(Socket socket, DataInputStream in, DataOutputStream out, Player player) {
+		ClientHandler c = new ClientHandler(socket, in, out, player);
 		Thread t = new Thread(c);
 		this.players.put(c, t);
 	} 

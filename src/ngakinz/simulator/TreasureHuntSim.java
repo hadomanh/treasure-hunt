@@ -19,7 +19,7 @@ import ngakinz.player.Player;
 public class TreasureHuntSim {
 	
 	private static Set<Artifact> readCheckPoints(Scanner scanner) {
-		Set<Artifact> checkPoints = new HashSet<Artifact>();
+		Set<Artifact> checkpoints = new HashSet<Artifact>();
 		int artifactCount = scanner.nextInt();
 		scanner.nextLine();
 
@@ -36,17 +36,17 @@ public class TreasureHuntSim {
 				xDest = scanner.nextInt();
 				yDest = scanner.nextInt();
 
-				checkPoints.add(new Clue(id, x, y, xDest, yDest));
+				checkpoints.add(new Clue(id, x, y, xDest, yDest));
 			} else if ("treasure".equals(type)) {
 				instances = scanner.nextInt();
 				desc = scanner.nextLine().trim();
 
-				checkPoints.add(new Treasure(id, x, y, instances, desc));
+				checkpoints.add(new Treasure(id, x, y, instances, desc));
 			}
 
 		}
 		
-		return checkPoints;
+		return checkpoints;
 		
 	}
 	
@@ -87,6 +87,12 @@ public class TreasureHuntSim {
 		List<Player> players = readPlayers(scanner);
 
 		scanner.close();
+		
+		for (Player p : players) {
+			System.out.println(p.toString());
+		}
+		
+		System.out.println("----------");
 
 		boolean loop = false;
 		do {
@@ -132,6 +138,7 @@ public class TreasureHuntSim {
 
 			}
 
+			// Share clue
 			for (Player p : players) {
 				for (Player pp : players) {
 					if (pp != p && pp.getClass() == NicePlayer.class && pp.inSameLocation(p)) {
@@ -146,6 +153,8 @@ public class TreasureHuntSim {
 			for (Player p : players) {
 				System.out.println(p.toString());
 			}
+			
+			System.out.println("----------");
 
 		} while (loop);
 

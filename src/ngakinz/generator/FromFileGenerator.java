@@ -23,14 +23,24 @@ public class FromFileGenerator implements GameGenerator {
 	
 	private int currentPlayer = -1;
 	
-	public FromFileGenerator(String filename) throws FileNotFoundException {
-		Scanner scanner = new Scanner(new FileInputStream(filename)).useDelimiter("\\s");
-
-		checkPoints = readCheckPoints(scanner);
+	public FromFileGenerator(String filename) {
+		Scanner scanner;
 		
-		players = readPlayers(scanner);
+		try {
+			scanner = new Scanner(new FileInputStream(filename)).useDelimiter("\\s");
+			
+			checkPoints = readCheckPoints(scanner);
+			
+			players = readPlayers(scanner);
+			
+			scanner.close();
 
-		scanner.close();
+		} catch (FileNotFoundException e) {
+			
+			System.out.println("File not found: " + filename);
+			
+		}
+		
 	}
 
 	@Override
@@ -106,8 +116,8 @@ public class FromFileGenerator implements GameGenerator {
 
 	@Override
 	public Player getPlayer() {
-		currentPlayer %= players.size();
 		currentPlayer ++;
+		currentPlayer %= players.size();
 		return players.get(currentPlayer);
 	}
 
