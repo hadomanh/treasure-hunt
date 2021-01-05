@@ -26,6 +26,7 @@ public abstract class Player {
 		this.y = y;
 		this.xDest = xDest;
 		this.yDest = yDest;
+		this.collection.add(new Clue("INIT", x, y, xDest, yDest));
 	}
 
 	public boolean inSameLocation(Artifact a) {
@@ -103,13 +104,12 @@ public abstract class Player {
 		sb.append("Type: " + this.getClass().getSimpleName() + "\n");
 		sb.append("Speed: " + speed + "\n");
 		sb.append("Location: (" + x + "," + y + ")\n");
-
-		sb.append("Hint: (" + xDest + "," + yDest + ")");
 		
 		if (collection != null) {
+			sb.append("Hint: ");
 			for (Artifact a : collection) {
 				if (a.getClass() == Clue.class) {
-					sb.append(" (" + a.getX() + "," + a.getY() + ")");
+					sb.append(" (" + ((Clue)a).getXDest() + "," + ((Clue)a).getYDest() + ")");
 				}
 				
 			}

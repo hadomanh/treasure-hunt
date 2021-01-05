@@ -18,7 +18,7 @@ public class NicePlayer extends Player {
 				Clue aa = new Clue((Clue)a, a.getX(), a.getY());
 				aa.setVisited(false);
 				p.collection.add(aa);
-				System.out.println("*** " + this.getName() + " shared clues with " + p.getName());
+				System.out.println("** " + this.getName() + " shared clues with " + p.getName());
 			}
 		}
 		

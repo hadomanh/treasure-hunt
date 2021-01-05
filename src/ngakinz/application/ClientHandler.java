@@ -48,7 +48,7 @@ public class ClientHandler implements Runnable {
 
 			Request request;
 
-			// reads message from client until "EXIT" signal is sent
+			// read message from client until "EXIT" signal is sent
 			RECEIVE: do {
 				request = ApplicationProvider.gson.fromJson(in.readUTF(), Request.class);
 				message = request.getMessage();
@@ -63,7 +63,7 @@ public class ClientHandler implements Runnable {
 				case USERNAME:
 					this.username = message;
 
-					response = new Response(200, MessageHeader.START, "Start...");
+					response = new Response(200, MessageHeader.START, player.toString());
 					out.writeUTF(ApplicationProvider.gson.toJson(response));
 					break;
 

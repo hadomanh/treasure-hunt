@@ -1,21 +1,17 @@
 package ngakinz.application;
 
-import java.net.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.Scanner;
 
-import ngakinz.artifact.Artifact;
-import ngakinz.artifact.Clue;
-import ngakinz.artifact.Treasure;
 import ngakinz.enums.MessageHeader;
 import ngakinz.model.Request;
 import ngakinz.model.Response;
 import ngakinz.player.MeanPlayer;
 import ngakinz.player.NicePlayer;
 import ngakinz.player.Player;
-
-import java.io.*;
 
 public class Client {
 	// initialize socket and input output streams
@@ -24,7 +20,6 @@ public class Client {
 	private DataInputStream in = null;
 	private Scanner scanner = null;
 	private Player player;
-	private List<Artifact> artifacts = new ArrayList<Artifact>();
 
 	// Constructor to put ip address and port
 	public Client(String address, int port) {
@@ -59,7 +54,6 @@ public class Client {
 			Request request;
 
 			int option = 1;
-			Artifact founded;
 
 			request = new Request(MessageHeader.USERNAME, line);
 			this.out.writeUTF(ApplicationProvider.gson.toJson(request));
@@ -77,28 +71,28 @@ public class Client {
 
 				case NICE_PLAYER:
 					System.out.println("** Player generated");
-					player = ApplicationProvider.gson.fromJson(response.getMessage(), NicePlayer.class);
+					player = ApplicationProvider.gson.fromJson(
+							response.getMessage().replaceFirst("\"collection\":\\[[^\\]]*\\]", "\"collection\":[]"),
+							NicePlayer.class);
 					System.out.println(player);
 					System.out.println("**");
 					break;
 
 				case MEAN_PLAYER:
 					System.out.println("** Player generated");
-					player = ApplicationProvider.gson.fromJson(response.getMessage(), MeanPlayer.class);
+					player = ApplicationProvider.gson.fromJson(
+							response.getMessage().replaceFirst("\"collection\":\\[[^\\]]*\\]", "\"collection\":[]"),
+							MeanPlayer.class);
 					System.out.println(player);
 					System.out.println("**");
 					break;
 
 				case CLUE:
-					founded = ApplicationProvider.gson.fromJson(response.getMessage(), Clue.class);
-					artifacts.add(founded);
 					System.out.println("** Clue founded: " + response.getMessage());
 					break;
 
 				case TREASURE:
-					founded = ApplicationProvider.gson.fromJson(response.getMessage(), Treasure.class);
-					artifacts.add(founded);
-					System.out.println("** Treasure founded: " + ((Treasure) founded).getDesc());
+					System.out.println("** Treasure founded: " + response.getMessage());
 					break;
 
 				case UPDATE:
@@ -107,10 +101,26 @@ public class Client {
 							player.getClass());
 					break;
 
+				case SHARE_CONFIRM:
+					do {
+						System.out.print("Share clue with " + response.getMessage() + "? (y/n): ");
+						line = scanner.next();
+					} while (!line.trim().equalsIgnoreCase("y") && !line.trim().equalsIgnoreCase("n"));
+
+					if (line.trim().equalsIgnoreCase("y")) {
+						request = new Request(MessageHeader.SHARE_ACCEPT, "");
+					} else {
+						request = new Request(MessageHeader.SHARE_DECLINE, "");
+					}
+
+					out.writeUTF(ApplicationProvider.gson.toJson(request));
+
+					break;
+
 				case START:
 					System.out.println("** Game start...");
 				case RECEIVING:
-					System.out.println(player);
+					System.out.println(response.getMessage());
 					do {
 						System.out.println("[1]. Move");
 						System.out.println("[0]. Exit");
@@ -144,7 +154,7 @@ public class Client {
 					default:
 						break;
 					}
-					
+
 					break;
 
 				case WAITING:

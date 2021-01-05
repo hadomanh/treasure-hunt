@@ -15,6 +15,6 @@ public class ApplicationProvider {
 	
 	public static Gson gson = new Gson();
 	
-	public static GameGenerator generator = new FromFileGenerator("4.txt");
+	public static GameGenerator generator = new FromFileGenerator("6.txt");
 
 }

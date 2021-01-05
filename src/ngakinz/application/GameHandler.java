@@ -11,6 +11,7 @@ import ngakinz.artifact.Clue;
 import ngakinz.artifact.Treasure;
 import ngakinz.enums.MessageHeader;
 import ngakinz.model.Response;
+import ngakinz.player.NicePlayer;
 
 @Data
 public class GameHandler implements Runnable {
@@ -53,9 +54,9 @@ public class GameHandler implements Runnable {
 					response = new Response(200, MessageHeader.RESULT, message);
 					p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(response));
 
-					if (takenTreasures == numberOfTreasure 
-							|| (topPlayer.getPlayer().getTreasure() > 0 && topPlayer.getPlayer().getTreasure() == numberOfTreasure / 2)) {
-						
+					if (takenTreasures == numberOfTreasure || (topPlayer.getPlayer().getTreasure() > 0
+							&& topPlayer.getPlayer().getTreasure() == numberOfTreasure / 2)) {
+
 						response = new Response(200, MessageHeader.FINISH,
 								topPlayer.getUsername() + ": " + topPlayer.getPlayer().getTreasure() + " treasure(s)");
 						p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(response));
@@ -69,7 +70,7 @@ public class GameHandler implements Runnable {
 					p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(response));
 
 					// re-collect
-					response = new Response(200, MessageHeader.RECEIVING, "");
+					response = new Response(200, MessageHeader.RECEIVING, p.getKey().getPlayer().toString());
 					p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(response));
 
 				}
@@ -98,6 +99,9 @@ public class GameHandler implements Runnable {
 	}
 
 	private String collectMessages() throws IOException {
+
+		Response response;
+
 		StringBuffer sb = new StringBuffer();
 
 		for (Entry<ClientHandler, Thread> p : players.entrySet()) {
@@ -123,7 +127,7 @@ public class GameHandler implements Runnable {
 							takenTreasures++;
 
 							p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(
-									new Response(200, MessageHeader.TREASURE, ApplicationProvider.gson.toJson(a))));
+									new Response(200, MessageHeader.TREASURE, ((Treasure)a).getDesc())));
 						}
 
 					}
@@ -137,20 +141,35 @@ public class GameHandler implements Runnable {
 		}
 
 		// Share clue
-//			for (Entry<ClientHandler, Thread> p : players.entrySet()) {
-//				for (Entry<ClientHandler, Thread> pp : players.entrySet()) {
-//					if (pp.getKey().getPlayer() != p.getKey().getPlayer()
-//							&& pp.getKey().getPlayer().getClass() == NicePlayer.class
-//							&& pp.getKey().getPlayer().inSameLocation(p.getKey().getPlayer())) {
-//
-//						pp.getKey().getPlayer().giveCluesToPerson(p.getKey().getPlayer());
-//
-//						if (p.getClass() == NicePlayer.class) {
-//							p.getKey().getPlayer().giveCluesToPerson(pp.getKey().getPlayer());
-//						}
-//					}
-//				}
-//			}
+		for (Entry<ClientHandler, Thread> p : players.entrySet()) {
+			for (Entry<ClientHandler, Thread> pp : players.entrySet()) {
+				if (pp.getKey().getPlayer() != p.getKey().getPlayer()
+						&& pp.getKey().getPlayer().getClass() == NicePlayer.class
+						&& pp.getKey().getPlayer().inSameLocation(p.getKey().getPlayer())) {
+
+					// Ask player to share clues
+					response = new Response(200, MessageHeader.SHARE_CONFIRM, p.getKey().getUsername());
+					pp.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(response));
+
+					// Receive answer from player
+					while (pp.getKey().getHeader() != MessageHeader.SHARE_ACCEPT
+							&& pp.getKey().getHeader() != MessageHeader.SHARE_DECLINE)
+						;
+
+					if (pp.getKey().getHeader() == MessageHeader.SHARE_ACCEPT) {
+						pp.getKey().getPlayer().giveCluesToPerson(p.getKey().getPlayer());
+						for (Artifact a : pp.getKey().getPlayer().getCollection()) {
+							if (a.getClass() == Clue.class) {
+								p.getKey().getOut().writeUTF(ApplicationProvider.gson
+										.toJson(new Response(200, MessageHeader.CLUE, ApplicationProvider.gson.toJson(a))));
+								
+							}
+						}
+					}
+
+				}
+			}
+		}
 
 		for (Entry<ClientHandler, Thread> p : players.entrySet()) {
 

@@ -44,7 +44,7 @@ public class Server {
 			out = new DataOutputStream(socket.getOutputStream());
 			
 			if (getPlayerAmount() < ApplicationProvider.CAPACITY) {
-				Response response = new Response(200, MessageHeader.ACCEPT, "Connected");
+				Response response = new Response(200, MessageHeader.ALLOW, "Connected");
 				out.writeUTF(ApplicationProvider.gson.toJson(response));
 				
 				Player p = ApplicationProvider.generator.getPlayer();
