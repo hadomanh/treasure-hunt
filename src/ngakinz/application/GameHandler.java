@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.google.gson.Gson;
+
 import lombok.Data;
 import ngakinz.artifact.Artifact;
 import ngakinz.artifact.Clue;
@@ -21,6 +23,8 @@ public class GameHandler implements Runnable {
 	private Set<Artifact> checkpoints;
 
 	private int takenTreasures;
+	
+	private Gson gson = ApplicationProvider.gson;
 
 	public GameHandler(Map<ClientHandler, Thread> players, Set<Artifact> checkpoints) {
 		this.players = players;
@@ -52,14 +56,14 @@ public class GameHandler implements Runnable {
 				for (Entry<ClientHandler, Thread> p : players.entrySet()) {
 					// Return result
 					response = new Response(200, MessageHeader.RESULT, message);
-					p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(response));
+					p.getKey().getOut().writeUTF(gson.toJson(response));
 
 					if (takenTreasures == numberOfTreasure || (topPlayer.getPlayer().getTreasure() > 0
 							&& topPlayer.getPlayer().getTreasure() == numberOfTreasure / 2)) {
 
 						response = new Response(200, MessageHeader.FINISH,
 								topPlayer.getUsername() + ": " + topPlayer.getPlayer().getTreasure() + " treasure(s)");
-						p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(response));
+						p.getKey().getOut().writeUTF(gson.toJson(response));
 
 						continue;
 					}
@@ -67,11 +71,11 @@ public class GameHandler implements Runnable {
 					// remain treasure
 					response = new Response(200, MessageHeader.REMAIN_TREASURE,
 							Integer.toString(numberOfTreasure - takenTreasures));
-					p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(response));
+					p.getKey().getOut().writeUTF(gson.toJson(response));
 
 					// re-collect
 					response = new Response(200, MessageHeader.RECEIVING, p.getKey().getPlayer().toString());
-					p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(response));
+					p.getKey().getOut().writeUTF(gson.toJson(response));
 
 				}
 
@@ -120,13 +124,13 @@ public class GameHandler implements Runnable {
 						p.getKey().getPlayer().addArtifact(a);
 
 						if (a.getClass() == Clue.class) {
-							p.getKey().getOut().writeUTF(ApplicationProvider.gson
-									.toJson(new Response(200, MessageHeader.CLUE, ApplicationProvider.gson.toJson(a))));
+							p.getKey().getOut().writeUTF(gson
+									.toJson(new Response(200, MessageHeader.CLUE, gson.toJson(a))));
 						} else {
 
 							takenTreasures++;
 
-							p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(
+							p.getKey().getOut().writeUTF(gson.toJson(
 									new Response(200, MessageHeader.TREASURE, ((Treasure)a).getDesc())));
 						}
 
@@ -149,7 +153,7 @@ public class GameHandler implements Runnable {
 
 					// Ask player to share clues
 					response = new Response(200, MessageHeader.SHARE_CONFIRM, p.getKey().getUsername());
-					pp.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(response));
+					pp.getKey().getOut().writeUTF(gson.toJson(response));
 
 					// Receive answer from player
 					while (pp.getKey().getHeader() != MessageHeader.SHARE_ACCEPT
@@ -160,8 +164,8 @@ public class GameHandler implements Runnable {
 						pp.getKey().getPlayer().giveCluesToPerson(p.getKey().getPlayer());
 						for (Artifact a : pp.getKey().getPlayer().getCollection()) {
 							if (a.getClass() == Clue.class) {
-								p.getKey().getOut().writeUTF(ApplicationProvider.gson
-										.toJson(new Response(200, MessageHeader.CLUE, ApplicationProvider.gson.toJson(a))));
+								p.getKey().getOut().writeUTF(gson
+										.toJson(new Response(200, MessageHeader.CLUE, gson.toJson(a))));
 								
 							}
 						}
@@ -173,8 +177,8 @@ public class GameHandler implements Runnable {
 
 		for (Entry<ClientHandler, Thread> p : players.entrySet()) {
 
-			p.getKey().getOut().writeUTF(ApplicationProvider.gson.toJson(
-					new Response(200, MessageHeader.UPDATE, ApplicationProvider.gson.toJson(p.getKey().getPlayer()))));
+			p.getKey().getOut().writeUTF(gson.toJson(
+					new Response(200, MessageHeader.UPDATE, gson.toJson(p.getKey().getPlayer()))));
 
 			sb.append(p.getKey().getUsername());
 			sb.append(" (" + p.getKey().getPlayer().getX() + "," + p.getKey().getPlayer().getY() + ")");

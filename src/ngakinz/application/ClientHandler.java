@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
+import com.google.gson.Gson;
+
 import lombok.Data;
 import ngakinz.enums.MessageHeader;
 import ngakinz.model.Request;
@@ -27,6 +29,8 @@ public class ClientHandler implements Runnable {
 	private volatile Player player;
 
 	private volatile String username;
+	
+	private Gson gson;
 
 	public ClientHandler(Socket socket, DataInputStream in, DataOutputStream out, Player player) {
 		this.socket = socket;
@@ -36,6 +40,7 @@ public class ClientHandler implements Runnable {
 		this.header = null;
 		this.player = player;
 		this.username = player.getName();
+		this.gson = ApplicationProvider.gson;
 	}
 
 	@Override
@@ -50,11 +55,11 @@ public class ClientHandler implements Runnable {
 
 			// read message from client until "EXIT" signal is sent
 			RECEIVE: do {
-				request = ApplicationProvider.gson.fromJson(in.readUTF(), Request.class);
+				request = gson.fromJson(in.readUTF(), Request.class);
 				message = request.getMessage();
 				header = request.getHeader();
 
-				System.out.println("From port " + socket.getPort() + ": " + message);
+				System.out.println("From port " + socket.getPort() + ": [" + header + "] " + message);
 
 				switch (request.getHeader()) {
 				case EXIT:
@@ -64,12 +69,12 @@ public class ClientHandler implements Runnable {
 					this.username = message;
 
 					response = new Response(200, MessageHeader.START, player.toString());
-					out.writeUTF(ApplicationProvider.gson.toJson(response));
+					out.writeUTF(gson.toJson(response));
 					break;
 
 				default:
 					response = new Response(200, MessageHeader.WAITING, "** Waiting other players...");
-					out.writeUTF(ApplicationProvider.gson.toJson(response));
+					out.writeUTF(gson.toJson(response));
 					break;
 				}
 

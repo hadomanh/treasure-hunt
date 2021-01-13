@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
 
+import com.google.gson.Gson;
+
 import ngakinz.enums.MessageHeader;
 import ngakinz.model.Request;
 import ngakinz.model.Response;
@@ -20,6 +22,7 @@ public class Client {
 	private DataInputStream in = null;
 	private Scanner scanner = null;
 	private Player player;
+	private Gson gson = ApplicationProvider.gson;
 
 	// Constructor to put ip address and port
 	public Client(String address, int port) {
@@ -43,7 +46,7 @@ public class Client {
 			out = new DataOutputStream(socket.getOutputStream());
 
 			// Try to connect server
-			Response response = ApplicationProvider.gson.fromJson(in.readUTF(), Response.class);
+			Response response = gson.fromJson(in.readUTF(), Response.class);
 			System.out.println(response.getMessage());
 
 			// Access denied
@@ -56,12 +59,17 @@ public class Client {
 			int option = 1;
 
 			request = new Request(MessageHeader.USERNAME, line);
-			this.out.writeUTF(ApplicationProvider.gson.toJson(request));
+			this.out.writeUTF(gson.toJson(request));
 
 			// keep reading
 			RECEIVE: do {
 
-				response = ApplicationProvider.gson.fromJson(in.readUTF(), Response.class);
+				response = gson.fromJson(in.readUTF(), Response.class);
+
+				System.out.println("--------");
+				System.out.println("From server: [" + response.getHeader() + "] [" + response.getStatus() + "] "
+						+ response.getMessage());
+				System.out.println("--------");
 
 				switch (response.getHeader()) {
 
@@ -71,7 +79,7 @@ public class Client {
 
 				case NICE_PLAYER:
 					System.out.println("** Player generated");
-					player = ApplicationProvider.gson.fromJson(
+					player = gson.fromJson(
 							response.getMessage().replaceFirst("\"collection\":\\[[^\\]]*\\]", "\"collection\":[]"),
 							NicePlayer.class);
 					System.out.println(player);
@@ -80,7 +88,7 @@ public class Client {
 
 				case MEAN_PLAYER:
 					System.out.println("** Player generated");
-					player = ApplicationProvider.gson.fromJson(
+					player = gson.fromJson(
 							response.getMessage().replaceFirst("\"collection\":\\[[^\\]]*\\]", "\"collection\":[]"),
 							MeanPlayer.class);
 					System.out.println(player);
@@ -96,7 +104,7 @@ public class Client {
 					break;
 
 				case UPDATE:
-					player = ApplicationProvider.gson.fromJson(
+					player = gson.fromJson(
 							response.getMessage().replaceFirst("\"collection\":\\[[^\\]]*\\]", "\"collection\":[]"),
 							player.getClass());
 					break;
@@ -113,14 +121,16 @@ public class Client {
 						request = new Request(MessageHeader.SHARE_DECLINE, "");
 					}
 
-					out.writeUTF(ApplicationProvider.gson.toJson(request));
+					out.writeUTF(gson.toJson(request));
 
 					break;
 
 				case START:
 					System.out.println("** Game start...");
 				case RECEIVING:
+					System.out.println("--------");
 					System.out.println(response.getMessage());
+					System.out.println("--------");
 					do {
 						System.out.println("[1]. Move");
 						System.out.println("[0]. Exit");
@@ -133,7 +143,7 @@ public class Client {
 					switch (option) {
 					case 0: {
 						request = new Request(MessageHeader.EXIT, "Boring game...");
-						out.writeUTF(ApplicationProvider.gson.toJson(request));
+						out.writeUTF(gson.toJson(request));
 						break RECEIVE;
 					}
 
@@ -148,7 +158,7 @@ public class Client {
 						}
 
 						request = new Request(MessageHeader.MOVE, line);
-						out.writeUTF(ApplicationProvider.gson.toJson(request));
+						out.writeUTF(gson.toJson(request));
 						break;
 
 					default:
